@@ -174,11 +174,10 @@ if __name__ == '__main__':
 
     logging.info('# ======= > run < ======= #')
 
-    # password_provided = getpass()
-    # password = password_provided.encode() 
+    password_provided = getpass()
+    password = password_provided.encode() 
     
-    password = 'defiprivatewyvern@79!'.encode()
-    accounts_handler = Account(password)
+    accounts_handler = Account(password_provided)
 
     utl.buy_price = utl.redis.get('hero:price:latest') - utl.configs['min_diff_buy'] # init
     utl.last_check_price_time = time()
