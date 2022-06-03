@@ -177,7 +177,7 @@ if __name__ == '__main__':
     password_provided = getpass()
     password = password_provided.encode() 
     
-    accounts_handler = Account(password_provided)
+    accounts_handler = Account(password)
 
     utl.buy_price = utl.redis.get('hero:price:latest') - utl.configs['min_diff_buy'] # init
     utl.last_check_price_time = time()
