@@ -12,7 +12,7 @@ import json
 from account import Account 
 from utils import Utils
 from pyhmy.rpc.exceptions import RequestsError ,RPCError ,RequestsTimeoutError
-
+   
 utl = Utils()
 
 logging.basicConfig(
@@ -27,7 +27,7 @@ logging.basicConfig(
 r = redis.Redis(host=utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,decode_responses=True)
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
-hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.configs['hero']['address']), abi=utl.configs['hero']['abi'])
+hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
 
  
 def buy_hero(hero_id ,price):
