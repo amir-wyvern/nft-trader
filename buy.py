@@ -2,110 +2,51 @@
 python version 3.9
 """
 
-from typing import Dict ,List ,Tuple
 import logging
-from time import time
-import base64
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-from cryptography.fernet import Fernet
+from time import time ,sleep
 from getpass import getpass
-
-from decimal import Decimal
-from web3 import Web3
-import json
-
 from pyhmy import signing 
 from pyhmy import account
 from pyhmy import transaction 
-from web3._utils.threads import Timeout
-
-import redis
-
+import json
 from account import Account 
+from utils import Utils
+from pyhmy.rpc.exceptions import RequestsError ,RPCError ,RequestsTimeoutError
 
-r = redis.Redis(host='127.0.0.1' ,port='6070' ,decode_responses=True)
-global_vars = {
-    'period_check_price' : time(),
-    'buy_price_by_period_time' : None,
-    'period_check_conf' : 300,
-    'index_network' : 0
-}
+utl = Utils()
 
 logging.basicConfig(
     level=logging.INFO,
     format='[%(asctime)-24s] [%(levelname)-8s] | %(message)s',
     handlers=[
-        logging.FileHandler("debug_main.log"),
+        logging.FileHandler("debug_buy.log"),
         logging.StreamHandler()
     ]
 )
 
-try :
-    with open('./config.json' ,'r') as fi:
-        conf = json.load(fi)    
-
-except Exception as e:
-    logging.error(f'!! error in file config.json [{e}]')    
-    exit(0)
-
+r = redis.Redis(host=utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,decode_responses=True)
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
-hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(conf['hero']['address']), abi=conf['hero']['abi'])
+hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.configs['hero']['address']), abi=utl.configs['hero']['abi'])
 
  
-def get_buy_price_by_period_time():
-
-    if  time() - global_vars['time_check_price'] > conf['period_time_check_price'] :
-        buy_price = r.get('hero:price:latest') - conf['min_diff_buy']
-
-    else:
-        buy_price = global_vars['buy_price_by_period_time'] 
-
-    return buy_price
-
-
-def wait_for_transaction_receipt(transaction_hash, timeout: float = 20, poll_latency: float = 0.1 ,endpoint= endpoint) :
-        try:
-            with Timeout(timeout) as _timeout:
-                while True:
-                    try:
-                        tx_receipt = transaction.get_transaction_receipt(transaction_hash, endpoint= endpoint)
-
-                    except TransactionNotFound:
-                        tx_receipt = None
-
-                    if tx_receipt is not None:
-                        break
-
-                    _timeout.sleep(poll_latency)
-
-            return tx_receipt
-
-        except Timeout:
-            raise TimeExhausted(
-                f"Transaction is not in the chain "
-                f"after {timeout} seconds"
-            )
-
-
 def buy_hero(hero_id ,price):
 
-    address = accounts.getAddress()
-    pri = accounts.getPri()
+    address = accounts_handler.getAddress()
+    pri = accounts_handler.getPri() 
 
     failed_count_of_req = 0
 
     while True:
         try :
-            nonce = account.get_account_nonce(address ,block_num='latest' ,endpoint= get_network() )
+            nonce = account.get_account_nonce(address ,block_num='latest' ,endpoint= utl.get_network() )
             break
 
         except RequestsError as e:
+            
 
             logging.error(f'!! RequestsError - [{e}]')
-            get_network(_next= True)
+            utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 return False
 
@@ -114,7 +55,7 @@ def buy_hero(hero_id ,price):
         except RequestsTimeoutError :
 
             logging.error(f'!! RequestsTimeoutError - [{e}]')
-            get_network(_next= True)
+            utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 False
             
@@ -147,14 +88,14 @@ def buy_hero(hero_id ,price):
     while True:
         
         try :
-            res = transaction.send_raw_transaction(rawTx, get_network() )
-            state = wait_for_transaction_receipt(res, timeout=20, endpoint=get_network() )
+            res = transaction.send_raw_transaction(rawTx, utl.get_network() )
+            state = wait_for_transaction_receipt(res, timeout=20, endpoint=utl.get_network() )
             break
         
         except RequestsError as e:
 
             logging.error(f'!! RequestsError - [{e}]')
-            get_network(_next= True)
+            utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 return False
 
@@ -171,7 +112,7 @@ def buy_hero(hero_id ,price):
         except RequestsTimeoutError as e:
             
             logging.error(f'!! RequestsTimeoutError - [{e}]')
-            get_network(_next= True)
+            utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 False
             
@@ -188,84 +129,30 @@ def buy_hero(hero_id ,price):
         return False
 
 
-def decode_response(tx):
-
-    cleanInput = tx['input'][2:]
-    func = cleanInput[:8]
-
-    if func == '4ee42914':
-
-        argByte = 8
-        arg1 = cleanInput[argByte:argByte+64]
-        arg1 = int(arg1 ,16)
-
-        argByte = argByte + 64
-        arg2 = cleanInput[argByte:argByte+64]
-        arg2 = int(arg2 ,16) / 10**18
-
-        argByte = argByte + 64
-        arg3 = cleanInput[argByte:argByte+64]
-        arg3 = int(arg3 ,16) /10**18
-        
-        argByte = argByte + 64
-        arg4 = cleanInput[argByte:argByte+64]
-        arg4 = int(arg4 ,16)
-
-        argByte = argByte + 64
-        arg5 = cleanInput[argByte:argByte+64]
-        arg5 = int(arg5 ,16)
-
-        return (arg1, arg2, arg3, arg4 ,arg5)
-
-    return ()
-
-
-def get_network(_next= False):
-
-    if _next:
-        
-        global_vars['index_network'] += 1
-        global_vars['index_network'] = global_vars['index_network'] % conf['networks']
-
-        logging.info('- change network to [{0}]'.format( global_vars['index_network'] ) ) 
-
-    return conf['networks'][global_vars['index_network']]
-
-
 def main():
 
     while True:
 
-        while True:
-            try:
-                first_100_tx_hashes = account.get_transaction_history(conf['hero']['address'] ,order='DESC', page=0, page_size=10, include_full_tx=True, endpoint= get_network() )
-                break
+        utl.update_conf() 
 
-            except RequestsError as e:
+        try:
+            first_10_tx = json.loads(r.get('hero:contract:tx'))
 
-                logging.error(f'!! RequestsError - [{e}]')
-                get_network(_next= True)
+        except Exception as e:
 
-            except RPCError as e:
+            logging.error(f'!! error first_10_tx - [{e}]')
 
-                logging.error(f'!! RPCError - [{e}]')
-
-            except RequestsTimeoutError as e:
-                
-                logging.error(f'!! RequestsTimeoutError - [{e}]')
-                get_network(_next= True)
-
-        buy_price = get_buy_price_by_period_time()
-        const_min_price = conf['const_min_price']
-        const_min_hero_id = conf['const_min_hero_id']
+        buy_price = utl.get_buy_price_by_period_time()
+        const_min_price = utl.configs['const_min_price']
+        const_min_hero_id = utl.configs['const_min_hero_id']
 
         try :
     
             # NOTE : check fake address
 
-            for i in first_100_tx_hashes :
+            for i in first_10_tx :
                     
-                if tx := decode_response(i):
+                if tx := utl.decode_response(i):
                     
                     # tx = (hero_id, price, ... )
                     if tx[1] >= const_min_price and tx[1] <= buy_price and tx[0] > const_min_hero_id : #NOTE : i need temp var for save buy already hero to dont buy again old hero!
@@ -275,10 +162,12 @@ def main():
 
         except KeyboardInterrupt :
             logging.error('Exit!')
-            exit()
+            exit(0)
 
         except Exception as e:
             logging.error(f'!!! error [{e}]')
+        
+        sleep(1)
 
 
 if __name__ == '__main__':
@@ -287,11 +176,14 @@ if __name__ == '__main__':
 
     # password_provided = getpass()
     # password = password_provided.encode() 
+    
     password = 'defiprivatewyvern@79!'.encode()
-    accounts = Account(password)
+    accounts_handler = Account(password)
 
-    global_vars['buy_price_by_period_time'] = r.get('hero:price:latest') - conf['min_diff_buy']# init
-    accounts.update()
-    buy_hero(172491,20 )
+    utl.buy_price = utl.redis.get('hero:price:latest') - utl.configs['min_diff_buy'] # init
+    utl.last_check_price_time = time()
+    utl.last_check_conf_time = time()
+
+    accounts_handler.update()
 
 
