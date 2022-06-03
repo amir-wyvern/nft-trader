@@ -7,19 +7,32 @@ import logging
 import base64
 import json
 from hashlib import md5
+from utils import Utils
 from web3 import Web3
+import redis
+
+utl = Utils()
 
 class Account :
-
     
+    __instance = None
+
     def __init__(self ,password):
         
         self.preHash = None
         self.ls_accounts = []
         self.password = password
         self.index = 0
+        self.redis = redis.Redis(host= utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,decode_responses=True)
 
-    def update(self):
+    def __new__(cls ,*args ,**kwargs):
+
+        if cls.__instance is None:
+            cls.__instance = super().__new__(cls)
+
+        return cls.__instance
+
+    def update(self ):
 
         try :
             with open('./accounts.json' ,'r') as fi:
@@ -35,7 +48,6 @@ class Account :
 
             self.preHash = md5(json.dumps(ls_account).encode()).hexdigest()
             logging.info('- accounts updated.')
-
 
     def decode(self ,ls_account):
         
@@ -84,9 +96,9 @@ class Account :
                 logging.error(f"!! can't decode private key [{name_acc}] -> [{e}]")
     
         return decode_accounts
-
-
+    
     def getAddress(self):
+
         return self.ls_accounts[self.index]['pub']
 
     def getPri(self):
@@ -95,5 +107,7 @@ class Account :
 
     def nextIndex(self):
 
+        self.update()
         self.index += 1
         self.index =  self.index % len(self.ls_accounts)
+
