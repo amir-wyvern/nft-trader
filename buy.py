@@ -12,7 +12,9 @@ import json
 from account import Account 
 from utils import Utils
 from pyhmy.rpc.exceptions import RequestsError ,RPCError ,RequestsTimeoutError
-   
+from web3 import Web3
+
+
 utl = Utils()
 
 logging.basicConfig(
@@ -183,6 +185,5 @@ if __name__ == '__main__':
     utl.last_check_price_time = time()
     utl.last_check_conf_time = time()
 
-    accounts_handler.update()
 
 
