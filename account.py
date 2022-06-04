@@ -23,6 +23,7 @@ class Account :
         self.ls_accounts = []
         self.password = password
         self.index = 0
+        self.update()
         self.redis = redis.Redis(host= utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,decode_responses=True)
 
     def __new__(cls ,*args ,**kwargs):
