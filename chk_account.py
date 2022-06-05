@@ -58,7 +58,7 @@ def main():
         resp = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
         balance = jewel.functions.balanceOf(address).call() / 10**18
             
-        print(resp ,balance)
+        print(resp.json() ,balance)
         sleep(5)
 
 
@@ -77,3 +77,4 @@ if __name__ == '__main__':
     utl.last_check_conf_time = time()
 
     main()
+ 
