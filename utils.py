@@ -5,9 +5,9 @@ from pyhmy import transaction
 from web3._utils.threads import Timeout
 import redis
 
-config_keys = {'jewel' ,'gas_price' ,'gas_limit' ,'time_cache_hero' ,'min_diff_buy' 
+config_keys = { 'gas_price' ,'gas_limit' ,'time_cache_hero' ,'min_diff_buy' 
                 ,'const_min_hero_id','max_repeat' ,'price_time_check_price' ,'period_check_conf' 
-                ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' ,'hero'
+                ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' 
 }
 
 class Utils:
