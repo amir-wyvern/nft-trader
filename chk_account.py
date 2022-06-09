@@ -17,14 +17,16 @@ import requests
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 
+
+
 utl = Utils()
 
 hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
 profile = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['profile']['address']), abi=utl.contracts['profile']['abi'])
 jewel = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['jewel']['address']), abi=utl.contracts['jewel']['abi'])
 
+r = redis.Redis(host=utl.configs['redis_host'], port=utl.configs['redis_port'] ,decode_responses=True)
 
-# params = {"limit":1  ,"params":[{"field":"saleprice","operator":">=","value":1000000000000000000},{'field':'network' ,'operator':'=' ,'value':'hmy'}],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
 
 headers = {
     'authority':'us-central1-defi-kingdoms-api.cloudfunctions.net',
@@ -53,7 +55,6 @@ rarity = {}
 summons = {'0':[0,1] ,'123':[1,2,3] ,'4567':[4,5,6,7] ,'89' :[8,9] }
 mainclass = {'01234567':[0,1,2,3,4,5,6,7] }
 
-from pprint import pprint
 def place_feature(attr ,feature , name):
 
     tmp = attr
@@ -114,12 +115,15 @@ def main():
             latest_price = int(latest_price * 10**18)
             
             if hero['saleprice'] is None:
+
                 print(latest_price)
+                # tokenid ,startPrice ,EndPrice ,duration ,winner
+                r.publish('sell' ,hero['id'] )
         
             elif abs(hero['saleprice'] - latest_price) >= 1 :
-                pass 
+                e.publish('cancel' ,hero['id']) 
 
-        sleep(5)
+        sleep(10)
 
 if __name__ == '__main__':
 
