@@ -24,7 +24,6 @@ profile = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['profile
 jewel = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['jewel']['address']), abi=utl.contracts['jewel']['abi'])
 
 
-params = {"limit":100,"params":[{"field":"owner","operator":"=","value": None},{"field":"network","operator":"=","value":"hmy"}],"offset":0,"order":{"orderBy":"generation","orderDir":"asc"}}
 # params = {"limit":1  ,"params":[{"field":"saleprice","operator":">=","value":1000000000000000000},{'field':'network' ,'operator':'=' ,'value':'hmy'}],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
 
 headers = {
@@ -48,36 +47,63 @@ headers = {
     'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
 }
 
-gen = {}
+gen = {'0' : [0] ,'1':[1] ,'2':[2] ,'3456789':[3,4,5,6,7,8,9]}
 level = {}
 rarity = {}
-summons = {}
-classes = {}
- 
+summons = {'0':[0,1] ,'123':[1,2,3] ,'4567':[4,5,6,7] ,'89' :[8,9] }
+mainclass = {'01234567':[0,1,2,3,4,5,6,7] ,'16,17,18,19' :[16,17,18,19]}
 
+def place_feature(attr ,feature , name):
+
+    tmp = attr
+    for key ,value in feature.items():
+
+        if attr in key:
+            tmp = value
+
+    dict_attr = {}
+    
+    if name == 'mainclass':
+        dict_attr = [ {"field": 'mainclass', 'operator': 'in', 'value': tmp} ]
+    else:
+        dict_attr = [ {'field': name, 'operator': '>=', 'value': min(tmp) } , {'field': name, 'operator': '<=', 'value': max(tmp) } ]
+
+    return dict_attr
+
+def check_features(hero):
+
+    ls = []
+    ls.append( {field: "network", operator: "=", value: "hmy"} )
+    ls.append(*place_feature(hero['generation'] ,gen ,'generation'))
+    ls.append(*place_feature(hero['level'] ,level ,'level'))
+    ls.append(*place_feature(hero['rarity'] ,rarity ,'rarity'))
+    ls.append(*place_feature(hero['summons_remaining'] ,summons ,'summons_remaining'))
+    ls.append(*place_feature(hero['mainclass'] ,mainclass ,'mainclass'))
+
+    print(ls)
+
+    return ls
+
+from pprint import pprint
 def main():
 
     while True:
         
         address = accounts_handler.getAddress()
-        
-        params['params'][0]['value'] = address
+
+        params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"generation","orderDir":"asc"}}
+
+        params['params']  = [{"field":"owner","operator":"=","value": address},{"field":"network","operator":"=","value":"hmy"} ]
+
         ls_hreo = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
         balance = jewel.functions.balanceOf(address).call() / 10**18
         for hero in ls_hero:
-             if hero['saleprice'] is not None:
-                  params['params'][0][]
-                  new_info = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
-	     
-	from pprint import pprint  
-        
-        #pprint(resp.json() )
+            if hero['saleprice'] is None:
+                sell_params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"generation","orderDir":"asc"}}
+                sell_params['params'] = check_features(hero)
 
-        for i ,j in  resp.json()[0].items():
-            if 'price' in i:
-              print(i , j)
-        sleep(5)
-
+                new_info = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )	     
+                pprint (new_info)
 
 if __name__ == '__main__':
 
