@@ -5,6 +5,7 @@
     "time_cache_hero" : 1,
     "min_diff_buy" : 2,
     "max_repeat" : 10,
+    "hero_time_cache" : 60,
     "price_time_check_price" : 600,
     "period_check_conf" : 60,
     "const_min_price" : 10,
