@@ -87,7 +87,6 @@ if __name__ == '__main__':
     password_provided = getpass()
     password = password_provided.encode() 
 
-
     accounts_handler = Account(password)
 
     utl.last_check_price_time = time()
