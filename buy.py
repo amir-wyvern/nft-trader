@@ -46,7 +46,6 @@ def buy_hero(hero_id ,price):
 
         except RequestsError as e:
             
-
             logging.error(f'!! RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
@@ -59,11 +58,11 @@ def buy_hero(hero_id ,price):
             logging.error(f'!! RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                False
+                return False
             
             failed_count_of_req += 1
 
-    build_tx = hero_contract.functions.bid(hero_id, w3.toWei(price, 'ether')).buildTransaction({
+    build_tx = hero_contract.functions.bid(hero_id, w3.toWei(price, 'wei')).buildTransaction({
             'nonce': nonce,
             'maxFeePerGas': 1,
             'maxPriorityFeePerGas': 1,
@@ -92,6 +91,7 @@ def buy_hero(hero_id ,price):
         try :
             res = transaction.send_raw_transaction(rawTx, utl.get_network() )
             state = wait_for_transaction_receipt(res, timeout=20, endpoint=utl.get_network() )
+            status = state['status']
             break
         
         except RequestsError as e:
@@ -99,7 +99,8 @@ def buy_hero(hero_id ,price):
             logging.error(f'!! RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                return False
+                status = False
+                break
 
             failed_count_of_req += 1
 
@@ -107,7 +108,8 @@ def buy_hero(hero_id ,price):
 
             logging.error(f'!! RPCError - [{e}]')
             if failed_count_of_req > 3 :
-                return False
+                status = False
+                break
 
             failed_count_of_req += 1
 
@@ -116,14 +118,15 @@ def buy_hero(hero_id ,price):
             logging.error(f'!! RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                False
+                status = False
+                break
             
             failed_count_of_req += 1
 
 
-    if state['status']:
+    if status:
         logging.info(f'- successfully tx [{hero_id}, {price}] - [{resp}]')
-
+        r.set(f'history:buyhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
     else:
@@ -132,19 +135,37 @@ def buy_hero(hero_id ,price):
 
 
 def main():
+    
 
     while True:
 
         utl.update_conf() 
 
-        try:
-            first_10_tx = json.loads(r.get('hero:contract:tx'))
+        while True:
+            try:
+                first_10_tx = account.get_transaction_history(utl.configs['hero']['address'] ,order='DESC', page=0, page_size=10, include_full_tx=True, endpoint= utl.get_network() )
+                break
 
-        except Exception as e:
+            except RequestsError as e:
 
-            logging.error(f'!! error first_10_tx - [{e}]')
+                logging.error(f'!! RequestsError - [{e}]')
+                utl.get_network(_next= True)
 
-        buy_price = utl.get_buy_price_by_period_time()
+            except RPCError as e:
+
+                logging.error(f'!! RPCError - [{e}]')
+
+            except RequestsTimeoutError as e:
+                
+                logging.error(f'!! RequestsTimeoutError - [{e}]')
+                utl.get_network(_next= True)
+            
+            except Exception as e :
+
+                logging.error(f'!! error - [{e}]')
+
+
+        buy_price = utl.get_buy_price()
         const_min_price = utl.configs['const_min_price']
         const_min_hero_id = utl.configs['const_min_hero_id']
 
@@ -157,10 +178,11 @@ def main():
                 if tx := utl.decode_response(i):
                     
                     # tx = (hero_id, price, ... )
-                    if tx[1] >= const_min_price and tx[1] <= buy_price and tx[0] > const_min_hero_id : #NOTE : i need temp var for save buy already hero to dont buy again old hero!
+                    if tx[1] >= int(const_min_price * 10**18) and tx[1] <= buy_price and \
+                        tx[0] > const_min_hero_id and not r.get('history:buyhero:{0}'.format(tx[0])): #NOTE : i need temp var for save buy already hero to dont buy again old hero!
                         
                         logging.info( '(^-^) Found Hero [id : {0}} ,price : {1}]'.format(tx[0] ,tx[1]) )
-                        buy_hero(hero_id, price)
+                        buy_hero(tx[0], tx[1])
 
         except KeyboardInterrupt :
             logging.error('Exit!')
@@ -169,8 +191,6 @@ def main():
         except Exception as e:
             logging.error(f'!!! error [{e}]')
         
-        sleep(1)
-
 
 if __name__ == '__main__':
 
