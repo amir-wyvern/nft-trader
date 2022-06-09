@@ -51,14 +51,15 @@ gen = {'0' : [0] ,'1':[1] ,'2':[2] ,'3456789':[3,4,5,6,7,8,9]}
 level = {}
 rarity = {}
 summons = {'0':[0,1] ,'123':[1,2,3] ,'4567':[4,5,6,7] ,'89' :[8,9] }
-mainclass = {'01234567':[0,1,2,3,4,5,6,7] ,'16,17,18,19' :[16,17,18,19]}
+mainclass = {'01234567':[0,1,2,3,4,5,6,7] }
 
+from pprint import pprint
 def place_feature(attr ,feature , name):
 
     tmp = attr
     for key ,value in feature.items():
 
-        if attr in key:
+        if str(attr) in key:
             tmp = value
 
     dict_attr = {}
@@ -66,44 +67,59 @@ def place_feature(attr ,feature , name):
     if name == 'mainclass':
         dict_attr = [ {"field": 'mainclass', 'operator': 'in', 'value': tmp} ]
     else:
-        dict_attr = [ {'field': name, 'operator': '>=', 'value': min(tmp) } , {'field': name, 'operator': '<=', 'value': max(tmp) } ]
+        if type(tmp) != list:
+            tmp = [int(item) for item in str(tmp)]
+
+        dict_attr = [ {'field': name, 'operator': '>=', 'value': min(tmp) }]
 
     return dict_attr
 
 def check_features(hero):
 
     ls = []
-    ls.append( {field: "network", operator: "=", value: "hmy"} )
-    ls.append(*place_feature(hero['generation'] ,gen ,'generation'))
-    ls.append(*place_feature(hero['level'] ,level ,'level'))
-    ls.append(*place_feature(hero['rarity'] ,rarity ,'rarity'))
-    ls.append(*place_feature(hero['summons_remaining'] ,summons ,'summons_remaining'))
-    ls.append(*place_feature(hero['mainclass'] ,mainclass ,'mainclass'))
+    ls.extend([{'field': 'network', 'operator': '=','value': 'hmy'}] )
+    ls.extend([{'field': "saleprice", 'operator': ">=", 'value': 1000000000000000000}])
+    ls.extend(place_feature(hero['generation'] ,gen ,'generation'))
+    ls.extend(place_feature(hero['level'] ,level ,'level'))
+    ls.extend(place_feature(hero['rarity'] ,rarity ,'rarity'))
+    ls.extend(place_feature(hero['summons_remaining'] ,summons ,'summons_remaining'))
+    ls.extend(place_feature(hero['mainclass'] ,mainclass ,'mainclass'))
 
-    print(ls)
+    pprint(ls)
 
     return ls
 
-from pprint import pprint
 def main():
 
     while True:
         
         address = accounts_handler.getAddress()
 
-        params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"generation","orderDir":"asc"}}
+        params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
 
         params['params']  = [{"field":"owner","operator":"=","value": address},{"field":"network","operator":"=","value":"hmy"} ]
 
-        ls_hreo = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
+        ls_hero = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers ).json()
         balance = jewel.functions.balanceOf(address).call() / 10**18
-        for hero in ls_hero:
-            if hero['saleprice'] is None:
-                sell_params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"generation","orderDir":"asc"}}
-                sell_params['params'] = check_features(hero)
 
-                new_info = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )	     
-                pprint (new_info)
+        for hero in ls_hero:
+            
+            sell_params = {"limit":3,"params":[],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
+            sell_params['params'] = check_features(hero)
+            resp = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=sell_params ,headers= headers )	     
+            
+            info_update = resp.json()
+
+            latest_price = int(info_update[0]['saleprice']) // 10**18 - 0.1
+            latest_price = int(latest_price * 10**18)
+            
+            if hero['saleprice'] is None:
+                print(latest_price)
+        
+            elif abs(hero['saleprice'] - latest_price) >= 1 :
+                pass 
+
+        sleep(5)
 
 if __name__ == '__main__':
 
