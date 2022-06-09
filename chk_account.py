@@ -48,17 +48,34 @@ headers = {
     'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
 }
 
+gen = {}
+level = {}
+rarity = {}
+summons = {}
+classes = {}
+ 
+
 def main():
 
     while True:
         
         address = accounts_handler.getAddress()
-        params['value'] = address
-
-        resp = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
+        
+        params['params'][0]['value'] = address
+        ls_hreo = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
         balance = jewel.functions.balanceOf(address).call() / 10**18
-            
-        print(resp.json() ,balance)
+        for hero in ls_hero:
+             if hero['saleprice'] is not None:
+                  params['params'][0][]
+                  new_info = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
+	     
+	from pprint import pprint  
+        
+        #pprint(resp.json() )
+
+        for i ,j in  resp.json()[0].items():
+            if 'price' in i:
+              print(i , j)
         sleep(5)
 
 
