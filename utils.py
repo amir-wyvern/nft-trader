@@ -77,11 +77,11 @@ class Utils:
                 
             logging.error(f"!! can't found keys{re} in config file")
                         
-    def get_buy_price_by_period_time(self):
+    def get_buy_price(self):
 
         if  time() - self.last_check_price_time > self.configs['period_time_check_price'] :
             self.last_check_price_time = time()
-            self.buy_price = self.redis.get('hero:price:latest') - self.configs['min_diff_buy']
+            self.buy_price = int( (self.redis.get('hero:price:latest') - self.configs['min_diff_buy'] ) * 10**18)
 
         return global_vars['buy_price']
 
