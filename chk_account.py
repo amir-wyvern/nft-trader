@@ -17,7 +17,14 @@ import requests
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 
-
+logging.basicConfig(
+    level=logging.INFO,
+    format='(Check Accounts) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
+    handlers=[
+        logging.FileHandler("debug_chkAccount.log"),
+        logging.StreamHandler()
+    ]
+)
 
 utl = Utils()
 
@@ -26,7 +33,6 @@ profile = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['profile
 jewel = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['jewel']['address']), abi=utl.contracts['jewel']['abi'])
 
 r = redis.Redis(host=utl.configs['redis_host'], port=utl.configs['redis_port'] ,decode_responses=True)
-
 
 headers = {
     'authority':'us-central1-defi-kingdoms-api.cloudfunctions.net',
@@ -92,6 +98,8 @@ def check_features(hero):
 
 def main():
 
+    logging.info('[chk_account.py runing ...]')
+
     while True:
         
         address = accounts_handler.getAddress()
@@ -102,6 +110,30 @@ def main():
 
         ls_hero = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers ).json()
         balance = jewel.functions.balanceOf(address).call() / 10**18
+    
+        while True:
+            
+            try :
+
+                rsep = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
+                ls_hero = resp.json()
+                break
+
+            except requests.exceptions.Timeout:
+
+                logging.error(f'!! RequestsTimeoutError - [{e}]')
+                sleep(2)
+
+            except requests.exceptions.RequestException as e:
+
+                logging.error(f'!! RequestException - [{e}]')
+                sleep(2)
+
+            except Exception as e:
+
+                logging.error(f'!! error - [{e}]')
+                sleep(2)
+
 
         for hero in ls_hero:
             
@@ -115,28 +147,25 @@ def main():
             latest_price = int(latest_price * 10**18)
             
             if hero['saleprice'] is None:
-
-                print(latest_price)
-                # tokenid ,startPrice ,EndPrice ,duration ,winner
-                r.publish('sell' ,hero['id'] )
+                data = {'pub': address ,'hero_id':hero['id'] ,'price':hero['saleprice']}
+                r.publish('sell' ,json.dumps(data) )
         
             elif abs(hero['saleprice'] - latest_price) >= 1 :
-                e.publish('cancel' ,hero['id']) 
+                data = {'pub': address ,'hero_id':hero['id'] }
+                e.publish('cancel' ,json.dumps(data)) 
 
         sleep(10)
 
 if __name__ == '__main__':
 
-    logging.info('# ======= > run < ======= #')
+    logging.info('# ======= > run chk_account.py < ======= #')
+
     utl.update_conf()
 
     password_provided = getpass()
     password = password_provided.encode() 
 
     accounts_handler = Account(password)
-
-    utl.last_check_price_time = time()
-    utl.last_check_conf_time = time()
 
     main()
  
