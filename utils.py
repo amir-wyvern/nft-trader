@@ -85,7 +85,7 @@ class Utils:
 
         if  time() - self.last_check_price_time > self.configs['period_time_check_price'] :
             self.last_check_price_time = time()
-            self.buy_price = int( (self.redis.get('hero:price:latest') - self.configs['min_diff_buy'] ) * 10**18)
+            self.buy_price = int( (int(self.redis.get('hero:price:latest')) - self.configs['min_diff_buy'] ) * 10**18)
 
         return global_vars['buy_price']
 
