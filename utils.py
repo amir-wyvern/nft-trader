@@ -10,7 +10,16 @@ config_keys = { 'gas_price' ,'gas_limit' ,'time_cache_hero' ,'min_diff_buy'
                 ,'const_min_hero_id','max_repeat' ,'period_time_check_price' ,'period_check_conf' 
                 ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' ,'hero_time_cache'
 }
-
+loggerA = logging.getLogger(__name__ + '.A')
+loggerA.basicConfig(
+    level=logging.INFO,
+    format='(Utils) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
+    handlers=[
+        logging.FileHandler("debug_utils.log"),
+        logging.StreamHandler()
+    ]
+)
+"""
 logging.basicConfig(
     level=logging.INFO,
     format='(Utils) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
@@ -19,6 +28,7 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+"""
 class Utils:
 
     last_check_price_time = None
@@ -31,13 +41,14 @@ class Utils:
 
     __instance = None
 
+    """
     def __new__(cls):
 
         if cls.__instance is None:
             cls.__instance = super().__new__(cls)
 
         return cls.__instance
-
+    """
     def __init__(self):
         
         self.update_conf()
@@ -93,9 +104,9 @@ class Utils:
 
         if  time() - self.last_check_price_time > self.configs['period_time_check_price'] :
             self.last_check_price_time = time()
-            self.buy_price = int( (int(self.redis.get('hero:price:latest')) - self.configs['min_diff_buy'] ) * 10**18)
+            self.buy_price = int( (float(self.redis.get('hero:price:latest')) - self.configs['min_diff_buy'] ) * 10**18)
 
-        return global_vars['buy_price']
+        return self.buy_price
 
     def wait_for_transaction_receipt(self, transaction_hash, timeout: float = 20, poll_latency: float = 0.1 ,endpoint= 'https://api.s0.t.hmny.io') :
 
