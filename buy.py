@@ -13,7 +13,7 @@ from account import Account
 from utils import Utils
 from pyhmy.rpc.exceptions import RequestsError ,RPCError ,RequestsTimeoutError
 from web3 import Web3
-
+import redis
 
 utl = Utils()
 
