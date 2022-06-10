@@ -100,12 +100,21 @@ class Account :
     
     def getAddress(self):
 
-        return self.ls_accounts[self.index]['pub']
+        if self.ls_accounts :
+            return self.ls_accounts[self.index]['pub']
+        else :
+            logging.error("!! the list accounts is empty")
+            exit(0)
 
-    def getPri(self):
+    def getPri(self ,pub=None):
 
-        return self.ls_accounts[self.index]['pri']
+        if pub is None:
+            return self.ls_accounts[self.index]['pri']
 
+        for p in self.ls_accounts:
+            if p['pub'] == pub:
+                return p['pri']
+        
     def nextIndex(self):
 
         self.update()
