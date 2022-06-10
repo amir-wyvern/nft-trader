@@ -19,7 +19,7 @@ utl = Utils()
 
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)-24s] [%(levelname)-8s] | %(message)s',
+    format='(Buy) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
     handlers=[
         logging.FileHandler("debug_buy.log"),
         logging.StreamHandler()
@@ -31,7 +31,7 @@ r = redis.Redis(host=utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
 
- 
+
 def buy_hero(hero_id ,price):
 
     address = accounts_handler.getAddress()
@@ -49,6 +49,7 @@ def buy_hero(hero_id ,price):
             logging.error(f'!! RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
+                logging.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
                 return False
 
             failed_count_of_req += 1
@@ -58,9 +59,21 @@ def buy_hero(hero_id ,price):
             logging.error(f'!! RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
+                logging.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
                 return False
             
             failed_count_of_req += 1
+        
+        except Exception as e :
+
+            logging.error(f'!! error - [{e}]')
+            utl.get_network(_next= True)
+            if failed_count_of_req > 3 :
+                logging.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
+                return False
+            
+            failed_count_of_req += 1
+        
 
     build_tx = hero_contract.functions.bid(hero_id, w3.toWei(price, 'wei')).buildTransaction({
             'nonce': nonce,
@@ -74,8 +87,8 @@ def buy_hero(hero_id ,price):
     tx = {
                 'chainId': 1,
                 'from': address,
-                'gas': 10165700,
-                'gasPrice': 39000000000,
+                'gas': utl.configs['gas_limit'],
+                'gasPrice': utl.configs['gas_price'],
                 'data': build_tx['data'],
                 'nonce': nonce,
                 'shardID': 0,
@@ -89,8 +102,10 @@ def buy_hero(hero_id ,price):
     while True:
         
         try :
-            res = transaction.send_raw_transaction(rawTx, utl.get_network() )
-            state = wait_for_transaction_receipt(res, timeout=20, endpoint=utl.get_network() )
+            resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
+            logging.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
+            
+            state = wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
             break
         
@@ -122,20 +137,32 @@ def buy_hero(hero_id ,price):
                 break
             
             failed_count_of_req += 1
+        
+        except Exception as e :
+
+            logging.error(f'!! error - [{e}]')
+            utl.get_network(_next= True)
+            if failed_count_of_req > 3 :
+                status = False
+                break
+            
+            failed_count_of_req += 1
 
 
     if status:
-        logging.info(f'- successfully tx [{hero_id}, {price}] - [{resp}]')
+        logging.info(f'- successfully tx ({hero_id}-{price}) [{resp_hash}]')
+        accounts_handler.nextIndex()
         r.set(f'history:buyhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
     else:
-        logging.info(f'!! failed tx [{hero_id}, {price}] - [{resp}]')
+        logging.info(f'!! failed tx [{hero_id}, {price}] ')
         return False
 
 
 def main():
     
+    logging.info('[buy.py runing ...]')
 
     while True:
 
@@ -194,7 +221,7 @@ def main():
 
 if __name__ == '__main__':
 
-    logging.info('# ======= > run < ======= #')
+    logging.info('# ======= > run buy.py < ======= #')
 
     password_provided = getpass()
     password = password_provided.encode() 
@@ -202,8 +229,8 @@ if __name__ == '__main__':
     accounts_handler = Account(password)
 
     utl.buy_price = utl.redis.get('hero:price:latest') - utl.configs['min_diff_buy'] # init
-    utl.last_check_price_time = time()
-    utl.last_check_conf_time = time()
+    
+    main()
 
 
 
