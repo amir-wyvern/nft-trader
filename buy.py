@@ -104,7 +104,7 @@ def buy_hero(hero_id ,price):
         try :
             resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
             logging.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
-            
+
             state = wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
             break
@@ -227,8 +227,6 @@ if __name__ == '__main__':
     password = password_provided.encode() 
     
     accounts_handler = Account(password)
-
-    utl.buy_price = utl.redis.get('hero:price:latest') - utl.configs['min_diff_buy'] # init
     
     main()
 
