@@ -11,6 +11,14 @@ config_keys = { 'gas_price' ,'gas_limit' ,'time_cache_hero' ,'min_diff_buy'
                 ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' ,'hero_time_cache'
 }
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='(Utils) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
+    handlers=[
+        logging.FileHandler("debug_utils.log"),
+        logging.StreamHandler()
+    ]
+)
 class Utils:
 
     last_check_price_time = None

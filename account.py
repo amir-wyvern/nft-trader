@@ -13,6 +13,15 @@ import redis
 
 utl = Utils()
 
+logging.basicConfig(
+    level=logging.INFO,
+    format='(Account) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
+    handlers=[
+        logging.FileHandler("debug_account.log"),
+        logging.StreamHandler()
+    ]
+)
+
 class Account :
     
     __instance = None
