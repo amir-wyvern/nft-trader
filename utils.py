@@ -3,11 +3,12 @@ from time import time
 import json
 from pyhmy import transaction 
 from web3._utils.threads import Timeout
+from web3.exceptions import TimeExhausted
 import redis
 
 config_keys = { 'gas_price' ,'gas_limit' ,'time_cache_hero' ,'min_diff_buy' 
-                ,'const_min_hero_id','max_repeat' ,'price_time_check_price' ,'period_check_conf' 
-                ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' 
+                ,'const_min_hero_id','max_repeat' ,'period_time_check_price' ,'period_check_conf' 
+                ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' ,'hero_time_cache'
 }
 
 class Utils:
@@ -32,8 +33,12 @@ class Utils:
     def __init__(self):
         
         self.update_conf()
+        self.last_check_price_time = 0
+
         if self.redis is None:
             self.redis = redis.Redis(host=self.configs['redis_host'] ,port=self.configs['redis_port'] ,decode_responses=True)
+
+        logging.info('- Config ok')    
 
     def update_conf(self):
 
@@ -71,7 +76,6 @@ class Utils:
             except Exception as e:
                 logging.error(f'!! error in file contracts.json [{e}]')    
                 exit(0)  
-                # exit(0)
 
         if re := config_keys - set(self.configs.keys()) :
                 
