@@ -170,7 +170,7 @@ def main():
 
         while True:
             try:
-                first_10_tx = account.get_transaction_history(utl.configs['hero']['address'] ,order='DESC', page=0, page_size=10, include_full_tx=True, endpoint= utl.get_network() )
+                first_10_tx = account.get_transaction_history(utl.contracts['hero']['address'] ,order='DESC', page=0, page_size=10, include_full_tx=True, endpoint= utl.get_network() )
                 break
 
             except RequestsError as e:
