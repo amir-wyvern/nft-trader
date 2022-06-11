@@ -6,12 +6,13 @@ from getpass import getpass
 from time import sleep 
 from web3 import Web3
 import requests
+import redis
 
 from logger import create_logger 
 from account import Account 
 from utils import Utils
 
-log = create_logger('checkAccount')
+log = create_logger('chk_Account')
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 
