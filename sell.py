@@ -66,7 +66,7 @@ def sell_hero(address, hero_id ,price):
             failed_count_of_req += 1
 
 
-    build_tx = hero_contract.functions.createAuction( int(hero_id), w3.toWei(price, 'wei') ,w3.toWei(price, 'wei'), 60 , w3.toChecksumAddress('0x' + '0'*64) ).buildTransaction({
+    build_tx = hero_contract.functions.createAuction( int(hero_id), w3.toWei(price, 'wei') ,w3.toWei(price, 'wei'), 60 , 0x0 ).buildTransaction({
             'nonce': nonce,
             'maxFeePerGas': 1,
             'maxPriorityFeePerGas': 1,
