@@ -1,26 +1,22 @@
+"""
+python version 3.9
+"""
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.fernet import Fernet
-from getpass import getpass
-import logging
-import base64
-import json
 from hashlib import md5
-from utils import Utils
 from web3 import Web3
+import base64
 import redis
+import json
+
+from logger import create_logger
+from utils import Utils
+
+log = create_logger('account')
 
 utl = Utils()
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='(Account) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
-    handlers=[
-        logging.FileHandler("debug_account.log"),
-        logging.StreamHandler()
-    ]
-)
 
 class Account :
     
@@ -49,7 +45,7 @@ class Account :
                 ls_account = json.load(fi)    
 
         except Exception as e:
-            logging.error(f'!! error in file accounts.json [{e}]')    
+            log.error(f'!! error in file accounts.json [{e}]')    
             exit(0)
 
         if md5(json.dumps(ls_account).encode()).hexdigest() != self.preHash:
@@ -57,7 +53,7 @@ class Account :
             self.ls_accounts = self.decode(ls_account)
 
             self.preHash = md5(json.dumps(ls_account).encode()).hexdigest()
-            logging.info('- accounts updated.')
+            log.info('- accounts updated.')
 
     def decode(self ,ls_account):
         
@@ -77,7 +73,7 @@ class Account :
             
             if re := {'name', 'pub', 'pri'} - set(acc.keys()) :
                 
-                logging.error(f"!! can't found keys{re} in index account [{index}]")
+                log.error(f"!! can't found keys{re} in index account [{index}]")
                 
                 continue
                 
@@ -91,7 +87,7 @@ class Account :
 
             except Exception as e:
                 
-                logging.error(f"!! error in public address [{name_acc}] -> [{e}]")
+                log.error(f"!! error in public address [{name_acc}] -> [{e}]")
                 continue
 
             try :
@@ -100,10 +96,10 @@ class Account :
 
                 new_acc = {'pub' : pub ,'name':name_acc ,'pri': pri}
                 decode_accounts.append(new_acc)
-                logging.info(f"- successfully added new account [{name_acc}]")
+                log.info(f"- successfully added new account [{name_acc}]")
                 
             except Exception as e:
-                logging.error(f"!! can't decode private key [{name_acc}] -> [{e}]")
+                log.error(f"!! can't decode private key [{name_acc}] -> [{e}]")
     
         return decode_accounts
     
@@ -112,7 +108,7 @@ class Account :
         if self.ls_accounts :
             return self.ls_accounts[self.index]['pub']
         else :
-            logging.error("!! the list accounts is empty")
+            log.error("!! the list accounts is empty")
             exit(0)
 
     def getPri(self ,pub=None):
