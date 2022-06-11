@@ -1,34 +1,23 @@
-import logging
-from time import time
-import json
-from pyhmy import transaction 
-from web3._utils.threads import Timeout
+"""
+python version 3.9
+"""
+
 from web3.exceptions import TimeExhausted
+from web3._utils.threads import Timeout
+from pyhmy import transaction 
+from time import time
 import redis
+import json
+
+from logger import create_logger
+
+log = create_logger('utils')
 
 config_keys = { 'gas_price' ,'gas_limit' ,'time_cache_hero' ,'min_diff_buy' 
                 ,'const_min_hero_id','max_repeat' ,'period_time_check_price' ,'period_check_conf' 
                 ,'const_min_price' ,'redis_host' ,'redis_port' ,'networks' ,'hero_time_cache'
 }
-loggerA = logging.getLogger(__name__ + '.A')
-loggerA.basicConfig(
-    level=logging.INFO,
-    format='(Utils) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
-    handlers=[
-        logging.FileHandler("debug_utils.log"),
-        logging.StreamHandler()
-    ]
-)
-"""
-logging.basicConfig(
-    level=logging.INFO,
-    format='(Utils) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
-    handlers=[
-        logging.FileHandler("debug_utils.log"),
-        logging.StreamHandler()
-    ]
-)
-"""
+
 class Utils:
 
     last_check_price_time = None
@@ -41,14 +30,6 @@ class Utils:
 
     __instance = None
 
-    """
-    def __new__(cls):
-
-        if cls.__instance is None:
-            cls.__instance = super().__new__(cls)
-
-        return cls.__instance
-    """
     def __init__(self):
         
         self.update_conf()
@@ -57,7 +38,7 @@ class Utils:
         if self.redis is None:
             self.redis = redis.Redis(host=self.configs['redis_host'] ,port=self.configs['redis_port'] ,decode_responses=True)
 
-        logging.info('- Config ok')    
+        log.debug('- Config ok')    
 
     def update_conf(self):
 
@@ -68,14 +49,14 @@ class Utils:
                     self.configs = json.load(fi) 
             
             except Exception as e:
-                logging.error(f'!! error in file config.json [{e}]')    
+                log.error(f'!! error in file config.json [{e}]')    
                 exit(0)
             try :
                 with open('./contracts.json' ,'r') as fi:
                     self.contracts = json.load(fi) 
             
             except Exception as e:
-                logging.error(f'!! error in file contracts.json [{e}]')    
+                log.error(f'!! error in file contracts.json [{e}]')    
                 exit(0)
 
         elif time() - self.last_check_conf_time > self.configs['period_check_conf'] :
@@ -86,19 +67,19 @@ class Utils:
                     self.last_check_conf_time = time()  
 
             except Exception as e:
-                logging.error(f'!! error in file config.json [{e}]')  
+                log.error(f'!! error in file config.json [{e}]')  
 
             try :
                 with open('./contracts.json' ,'r') as fi:
                     self.contracts = json.load(fi) 
             
             except Exception as e:
-                logging.error(f'!! error in file contracts.json [{e}]')    
+                log.error(f'!! error in file contracts.json [{e}]')    
                 exit(0)  
 
         if re := config_keys - set(self.configs.keys()) :
                 
-            logging.error(f"!! can't found keys{re} in config file")
+            log.error(f"!! can't found keys{re} in config file")
                         
     def get_buy_price(self):
 
@@ -170,6 +151,6 @@ class Utils:
             self.index_network += 1
             self.index_network = self.index_network % len(self.configs['networks'])
 
-            logging.info('- change network to [{0}]'.format( self.index_network ) ) 
+            log.info('- change network to [{0}]'.format( self.index_network ) ) 
 
         return self.configs['networks'][self.index_network]
