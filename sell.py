@@ -9,6 +9,7 @@ from pyhmy import signing
 from pyhmy import account
 from web3 import Web3
 import redis
+import json
 
 from logger import create_logger
 from account import Account 
@@ -155,18 +156,19 @@ def main():
     p = r.pubsub()
     p.subscribe('sell')
 
-    log.debug('[sell.py runing ...]')
+    log.debug('sell.py runing ...')
 
     for item in p.listen():
 
-        log.debug('recive a request for Sale [{0}-{1}]'.format(item['hero_id'] ,item['price']))
+        data = json.loads(item)
+        log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
         utl.update_conf() 
 
-        if type(item) != dict:
+        if type(data) != dict:
 
             try :
-                if not r.get('history:sellhero:{0}'.format(item['hero_id'])) :
-                    sell_hero(item['pub'], item['hero_id'] ,item['price'])
+                if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
+                    sell_hero(data['pub'], data['hero_id'] ,data['price'])
 
             except KeyboardInterrupt :
                 log.error('Exit!')

@@ -8,6 +8,8 @@ from getpass import getpass
 from pyhmy import signing 
 from pyhmy import account
 from web3 import Web3
+import redis
+import json
 
 from logger import create_logger
 from account import Account 
@@ -147,15 +149,17 @@ def main():
 
     for item in p.listen():
 
-        log.debug('recive a request for Cancel [{0}]'.format(item['hero_id']))
+        data = json.loads(item)
+
+        log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
 
         utl.update_conf() 
 
-        if type(item) != dict:
+        if type(data) != dict:
 
             try :
-                if not r.get('history:cancelhero:{0}'.format(item['hero_id'])) :
-                    cancel_hero(item['pub'], item['hero_id'])
+                if not r.get('history:cancelhero:{0}'.format(data['hero_id'])) :
+                    cancel_hero(data['pub'], data['hero_id'])
 
             except KeyboardInterrupt :
                 log.error('Exit!')
