@@ -23,7 +23,6 @@ r = redis.Redis(host=utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
-
  
 def sell_hero(address, hero_id ,price):
 
@@ -67,7 +66,7 @@ def sell_hero(address, hero_id ,price):
             failed_count_of_req += 1
 
 
-    build_tx = hero_contract.functions.createAuction(hero_id, w3.toWei(price, 'wei') ,w3.toWei(price, 'wei'), 60 , 0 ).buildTransaction({
+    build_tx = hero_contract.functions.createAuction( int(hero_id), w3.toWei(price, 'wei') ,w3.toWei(price, 'wei'), 60 , w3.toChecksumAddress('0x' + '0'*64) ).buildTransaction({
             'nonce': nonce,
             'maxFeePerGas': 1,
             'maxPriorityFeePerGas': 1,
@@ -140,8 +139,8 @@ def sell_hero(address, hero_id ,price):
             
             failed_count_of_req += 1
 
-
     if status:
+
         log.info(f'- successfully tx [{hero_id}, {price}] - [{rsep_hash}]')
         r.set(f'history:sellhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
