@@ -105,7 +105,7 @@ def main():
             
             try :
 
-                rsep = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
+                resp = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers )
                 ls_hero = resp.json()
                 break
 
