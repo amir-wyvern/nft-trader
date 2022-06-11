@@ -87,7 +87,7 @@ def check_features(hero):
 
 def main():
 
-    log.debug('[chk_account.py runing ...]')
+    log.debug('chk_account.py runing ...')
 
     while True:
         

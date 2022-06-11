@@ -162,7 +162,7 @@ def main():
 
         utl.update_conf() 
 
-        if type(data) != dict:
+        if type(item['data']) != dict:
             data = json.loads(item['data'])
             log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
 
