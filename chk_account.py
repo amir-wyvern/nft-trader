@@ -7,6 +7,7 @@ from time import sleep
 from web3 import Web3
 import requests
 import redis
+import json
 
 from logger import create_logger 
 from account import Account 
