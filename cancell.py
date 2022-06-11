@@ -149,13 +149,12 @@ def main():
 
     for item in p.listen():
 
-        data = json.loads(item)
-
-        log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
-
         utl.update_conf() 
 
         if type(data) != dict:
+
+            data = json.loads(item)
+            log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
 
             try :
                 if not r.get('history:cancelhero:{0}'.format(data['hero_id'])) :

@@ -160,11 +160,11 @@ def main():
 
     for item in p.listen():
 
-        data = json.loads(item)
-        log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
         utl.update_conf() 
 
         if type(data) != dict:
+            data = json.loads(item['data'])
+            log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
 
             try :
                 if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
