@@ -132,15 +132,15 @@ def main():
             
             info_update = resp.json()
 
-            latest_price = int(info_update[0]['saleprice']) // 10**18 - 0.1
-            latest_price = int(latest_price * 10**18)
+            price_for_sale = int(info_update[0]['saleprice']) // 10**18 - 0.1
+            price_for_sale = int(price_for_sale * 10**18)
             
             if hero['saleprice'] is None:
-                log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,hero['saleprice']))
-                data = {'pub': address ,'hero_id':hero['id'] ,'price':hero['saleprice']}
+                log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
+                data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
                 r.publish('sell' ,json.dumps(data) )
         
-            elif abs(hero['saleprice'] - latest_price) >= 1 :
+            elif abs(hero['saleprice'] - price_for_sale) >= 1 :
                 log.debug('send hero for cancel sale [{0}]'.format(hero['id']))
                 data = {'pub': address ,'hero_id':hero['id'] }
                 e.publish('cancel' ,json.dumps(data)) 
