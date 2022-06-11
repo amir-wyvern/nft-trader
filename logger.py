@@ -8,7 +8,7 @@ def create_logger(name_log):
 
     logger = logging.getLogger(name_log)
     logger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(f'{name_log:<11} [%(asctime)-24s] [%(levelname)-8s] [%(lineno)-3d] | %(message)s')
+    formatter = logging.Formatter(f'[%(asctime)-24s] [%(levelname)-8s] [%(lineno)-3d -{name_log:<11}] | %(message)s')
     fh = logging.FileHandler(f'debug_{name_log}.log')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
