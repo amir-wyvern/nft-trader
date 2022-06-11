@@ -136,10 +136,12 @@ def main():
             latest_price = int(latest_price * 10**18)
             
             if hero['saleprice'] is None:
+                log.debug('send hero for sale [{0}-{1}]'.format(hero['id']) ,hero['saleprice'])
                 data = {'pub': address ,'hero_id':hero['id'] ,'price':hero['saleprice']}
                 r.publish('sell' ,json.dumps(data) )
         
             elif abs(hero['saleprice'] - latest_price) >= 1 :
+                log.debug('send hero for cancel sale [{0}]'.format(hero['id']))
                 data = {'pub': address ,'hero_id':hero['id'] }
                 e.publish('cancel' ,json.dumps(data)) 
 
