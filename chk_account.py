@@ -2,29 +2,18 @@
 python version 3.9
 """
 
-import logging
-from time import time
 from getpass import getpass
-from pyhmy import signing 
-from pyhmy import account
-from pyhmy import transaction 
-
-from account import Account 
-from utils import Utils
-from time import sleep ,time 
+from time import sleep 
 from web3 import Web3
 import requests
 
-w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
+from logger import create_logger 
+from account import Account 
+from utils import Utils
 
-logging.basicConfig(
-    level=logging.INFO,
-    format='(Check Accounts) [%(asctime)-24s] [%(levelname)-8s] [%(lineno)d] | %(message)s',
-    handlers=[
-        logging.FileHandler("debug_chkAccount.log"),
-        logging.StreamHandler()
-    ]
-)
+log = create_logger('checkAccount')
+
+w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 
 utl = Utils()
 
@@ -98,7 +87,7 @@ def check_features(hero):
 
 def main():
 
-    logging.info('[chk_account.py runing ...]')
+    log.debug('[chk_account.py runing ...]')
 
     while True:
         
@@ -121,17 +110,17 @@ def main():
 
             except requests.exceptions.Timeout:
 
-                logging.error(f'!! RequestsTimeoutError - [{e}]')
+                log.error(f'!! RequestsTimeoutError - [{e}]')
                 sleep(2)
 
             except requests.exceptions.RequestException as e:
 
-                logging.error(f'!! RequestException - [{e}]')
+                log.error(f'!! RequestException - [{e}]')
                 sleep(2)
 
             except Exception as e:
 
-                logging.error(f'!! error - [{e}]')
+                log.error(f'!! error - [{e}]')
                 sleep(2)
 
 
@@ -158,7 +147,7 @@ def main():
 
 if __name__ == '__main__':
 
-    logging.info('# ======= > run chk_account.py < ======= #')
+    log.debug('# ======= > run chk_account.py < ======= #')
 
     utl.update_conf()
 
