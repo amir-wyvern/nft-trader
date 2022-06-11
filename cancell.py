@@ -143,9 +143,11 @@ def main():
     p = r.pubsub()
     p.subscribe('cancel')
 
-    log.debug('[cancel.py runing ...]')
+    log.debug('cancel.py runing ...')
 
     for item in p.listen():
+
+        log.debug('recive a request for Cancel [{0}]'.format(item['hero_id']))
 
         utl.update_conf() 
 

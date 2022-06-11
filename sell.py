@@ -159,6 +159,7 @@ def main():
 
     for item in p.listen():
 
+        log.debug('recive a request for Sale [{0}-{1}]'.format(item['hero_id'] ,item['price']))
         utl.update_conf() 
 
         if type(item) != dict:
