@@ -136,7 +136,7 @@ def main():
             latest_price = int(latest_price * 10**18)
             
             if hero['saleprice'] is None:
-                log.debug('send hero for sale [{0}-{1}]'.format(hero['id']) ,hero['saleprice'])
+                log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,hero['saleprice']))
                 data = {'pub': address ,'hero_id':hero['id'] ,'price':hero['saleprice']}
                 r.publish('sell' ,json.dumps(data) )
         
