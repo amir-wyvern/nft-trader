@@ -82,8 +82,6 @@ def check_features(hero):
     ls.extend(place_feature(hero['summons_remaining'] ,summons ,'summons_remaining'))
     ls.extend(place_feature(hero['mainclass'] ,mainclass ,'mainclass'))
 
-    pprint(ls)
-
     return ls
 
 def main():
