@@ -8,6 +8,7 @@ from getpass import getpass
 from pyhmy import signing 
 from pyhmy import account
 from web3 import Web3
+import redis
 
 from logger import create_logger
 from account import Account 
