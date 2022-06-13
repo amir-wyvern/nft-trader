@@ -134,7 +134,7 @@ def main():
 
             price_for_sale = int(info_update[0]['saleprice']) // 10**18 - 0.1
             price_for_sale = int(price_for_sale * 10**18)
-            
+             
             if hero['saleprice'] is None:
                 log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
                 data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
