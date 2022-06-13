@@ -151,9 +151,9 @@ def main():
 
         utl.update_conf() 
 
-        if type(item['data']) != dict:
+        if type(item['data']) == str:
 
-            data = json.loads(item)
+            data = json.loads(item['data'])
             log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
 
             try :
