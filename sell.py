@@ -66,7 +66,7 @@ def sell_hero(address, hero_id ,price):
             failed_count_of_req += 1
 
 
-    build_tx = hero_contract.functions.createAuction( int(hero_id), w3.toWei(price, 'wei') ,w3.toWei(price, 'wei'), 60 , hex('0x'+ '0'*40) ).buildTransaction({
+    build_tx = hero_contract.functions.createAuction( int(hero_id), w3.toWei(price, 'wei') ,w3.toWei(price, 'wei'), 60 , '0x'+ '0'*40 ).buildTransaction({
             'nonce': nonce,
             'maxFeePerGas': 1,
             'maxPriorityFeePerGas': 1,
@@ -93,10 +93,10 @@ def sell_hero(address, hero_id ,price):
     while True:
         
         try :
-            rsep_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
+            resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
             log.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
 
-            state = wait_for_transaction_receipt(rsep_hash, timeout=20, endpoint=utl.get_network() )
+            state = wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
             break
         
@@ -141,7 +141,7 @@ def sell_hero(address, hero_id ,price):
 
     if status:
 
-        log.info(f'- successfully tx [{hero_id}, {price}] - [{rsep_hash}]')
+        log.info(f'- successfully tx [{hero_id}, {price}] - [{resp_hash}]')
         r.set(f'history:sellhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
@@ -167,7 +167,10 @@ def main():
 
             try :
                 if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
-                    sell_hero(data['pub'], data['hero_id'] ,data['price'])
+                    if data['price'] >= 20 :
+                        sell_hero(data['pub'], data['hero_id'] ,data['price'])
+
+                    log.warning('! price for sell is so low')
 
             except KeyboardInterrupt :
                 log.error('Exit!')
