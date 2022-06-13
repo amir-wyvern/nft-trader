@@ -55,7 +55,7 @@ def cancel_hero(address, hero_id):
             
             failed_count_of_req += 1
 
-    build_tx = hero_contract.functions.cancelAuction(hero_id ).buildTransaction({
+    build_tx = hero_contract.functions.cancelAuction(int(hero_id) ).buildTransaction({
             'nonce': nonce,
             'maxFeePerGas': 1,
             'maxPriorityFeePerGas': 1,

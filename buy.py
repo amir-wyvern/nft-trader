@@ -66,7 +66,7 @@ def buy_hero(hero_id ,price):
             failed_count_of_req += 1
         
 
-    build_tx = hero_contract.functions.bid(hero_id, w3.toWei(price, 'wei')).buildTransaction({
+    build_tx = hero_contract.functions.bid(int(hero_id), w3.toWei(price, 'wei')).buildTransaction({
             'nonce': nonce,
             'maxFeePerGas': 1,
             'maxPriorityFeePerGas': 1,
