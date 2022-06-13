@@ -82,10 +82,10 @@ def cancel_hero(address, hero_id):
     while True:
         
         try :
-            rsep_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
+            resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
             log.info(f'- Tx Hash ({hero_id}) [{resp_hash}]')
 
-            state = utl.wait_for_transaction_receipt(rsep_hash, timeout=20, endpoint=utl.get_network() )
+            state = utl.wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
             break
         
