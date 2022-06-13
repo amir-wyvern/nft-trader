@@ -7,6 +7,7 @@ from pyhmy import transaction
 from getpass import getpass
 from pyhmy import signing 
 from pyhmy import account
+from time import sleep
 from web3 import Web3
 import redis
 import json
@@ -142,32 +143,37 @@ def cancel_hero(address, hero_id):
  
 def main():
 
-    p = r.pubsub()
-    p.subscribe('cancel')
+    while True:
+        try:
+            p = r.pubsub()
+            p.subscribe('cancel')
 
-    log.debug('cancel.py runing ...')
+            log.debug('cancel.py runing ...')
 
-    for item in p.listen():
+            for item in p.listen():
 
-        utl.update_conf() 
+                utl.update_conf() 
 
-        if type(item['data']) == str:
+                if type(item['data']) == str:
 
-            data = json.loads(item['data'])
-            log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
+                    data = json.loads(item['data'])
+                    log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
 
-            try :
-                if not r.get('history:cancelhero:{0}'.format(data['hero_id'])) :
-                    cancel_hero(data['pub'], data['hero_id'])
+                    try :
+                        if not r.get('history:cancelhero:{0}'.format(data['hero_id'])) :
+                            cancel_hero(data['pub'], data['hero_id'])
 
-            except KeyboardInterrupt :
-                log.error('Exit!')
-                exit(0)
+                    except KeyboardInterrupt :
+                        log.error('Exit!')
+                        exit(0)
 
-            except Exception as e:
-                log.error(f'!!! error [{e}]')
+                    except Exception as e:
+                        log.error(f'!!! error [{e}]')
 
-
+        except Exception as e :
+            log.error(f'!! error in main loop [{e}]')
+            sleep(10)
+            
 if __name__ == '__main__':
 
     log.debug('# ======= > run cancel.py < ======= #')

@@ -153,7 +153,7 @@ def buy_hero(hero_id ,price):
 
 def main():
     
-    log.debug('[buy.py runing ...]')
+    log.debug('buy.py runing ...')
 
     while True:
 

@@ -7,6 +7,7 @@ from pyhmy import transaction
 from getpass import getpass
 from pyhmy import signing 
 from pyhmy import account
+from time import sleep
 from web3 import Web3
 import redis
 import json
@@ -152,33 +153,37 @@ def sell_hero(address, hero_id ,price):
 
 def main():
 
-    p = r.pubsub()
-    p.subscribe('sell')
+    while True : 
+        try : 
+            p = r.pubsub()
+            p.subscribe('sell')
 
-    log.debug('sell.py runing ...')
+            log.debug('sell.py runing ...')
 
-    for item in p.listen():
+            for item in p.listen():
 
-        utl.update_conf() 
+                utl.update_conf() 
 
-        if type(item['data']) == str:
-            data = json.loads(item['data'])
-            log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
+                if type(item['data']) == str:
+                    data = json.loads(item['data'])
+                    log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
 
-            try :
-                if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
-                    if data['price'] >= 20 :
-                        sell_hero(data['pub'], data['hero_id'] ,data['price'])
-                    else :
-                        log.warning('! price for sell is so low')
+                    try :
+                        if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
+                            if data['price'] >= 20 :
+                                sell_hero(data['pub'], data['hero_id'] ,data['price'])
+                            else :
+                                log.warning('! price for sell is so low')
 
-            except KeyboardInterrupt :
-                log.error('Exit!')
-                exit(0)
+                    except KeyboardInterrupt :
+                        log.error('Exit!')
+                        exit(0)
 
-            except Exception as e:
-                log.error(f'!!! error [{e}]')
-
+                    except Exception as e:
+                        log.error(f'!!! error [{e}]')
+        except Exception as e :
+            log.error(f'!! error in main loop [{e}]')
+            sleep(10)
 
 if __name__ == '__main__':
 
