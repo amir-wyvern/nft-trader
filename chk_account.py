@@ -140,7 +140,7 @@ def main():
                 data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
                 r.publish('sell' ,json.dumps(data) )
         
-            elif abs(int(hero['saleprice']) - price_for_sale) >= 1 :
+            elif abs(int(hero['saleprice']) - price_for_sale) >= 2 :
                 log.debug('send hero for cancel sale [{0}]'.format(hero['id']))
                 data = {'pub': address ,'hero_id':hero['id'] }
                 r.publish('cancel' ,json.dumps(data)) 

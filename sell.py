@@ -169,8 +169,8 @@ def main():
                 if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
                     if data['price'] >= 20 :
                         sell_hero(data['pub'], data['hero_id'] ,data['price'])
-
-                    log.warning('! price for sell is so low')
+                    else :
+                        log.warning('! price for sell is so low')
 
             except KeyboardInterrupt :
                 log.error('Exit!')
