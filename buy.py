@@ -96,7 +96,7 @@ def buy_hero(hero_id ,price):
             resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
             log.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
 
-            state = wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
+            state = utl.wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
             break
         
