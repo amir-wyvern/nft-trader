@@ -151,6 +151,6 @@ class Utils:
             self.index_network += 1
             self.index_network = self.index_network % len(self.configs['networks'])
 
-            log.info('- change network to [{0}]'.format( self.index_network ) ) 
+            log.info('- change network to [{0}]'.format( self.configs['networks'][self.index_network] ) ) 
 
         return self.configs['networks'][self.index_network]

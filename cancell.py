@@ -83,7 +83,7 @@ def cancel_hero(address, hero_id):
         
         try :
             rsep_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
-            log.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
+            log.info(f'- Tx Hash ({hero_id}) [{resp_hash}]')
 
             state = wait_for_transaction_receipt(rsep_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
@@ -130,7 +130,7 @@ def cancel_hero(address, hero_id):
 
 
     if status:
-        log.info(f'- successfully tx ({hero_id}-{price}) [{resp_hash}]')
+        log.info(f'- successfully tx ({hero_id}) [{resp_hash}]')
         r.set(f'history:cancelhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
