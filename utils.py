@@ -126,11 +126,11 @@ class Utils:
 
             argByte = argByte + 64
             arg2 = cleanInput[argByte:argByte+64]
-            arg2 = int(arg2 ,16) / 10**18
+            arg2 = int(arg2 ,16) 
 
             argByte = argByte + 64
             arg3 = cleanInput[argByte:argByte+64]
-            arg3 = int(arg3 ,16) /10**18
+            arg3 = int(arg3 ,16) 
             
             argByte = argByte + 64
             arg4 = cleanInput[argByte:argByte+64]
