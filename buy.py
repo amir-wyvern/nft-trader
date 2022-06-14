@@ -158,6 +158,7 @@ def main():
     while True:
 
         utl.update_conf() 
+        accounts_handler.update()
 
         while True:
             try:

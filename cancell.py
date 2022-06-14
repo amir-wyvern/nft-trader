@@ -153,6 +153,7 @@ def main():
             for item in p.listen():
 
                 utl.update_conf() 
+                accounts_handler.update()
 
                 if type(item['data']) == str:
 

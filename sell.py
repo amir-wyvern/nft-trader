@@ -161,7 +161,7 @@ def main():
             log.debug('sell.py runing ...')
 
             for item in p.listen():
-
+                accounts_handler.update()
                 utl.update_conf() 
 
                 if type(item['data']) == str:

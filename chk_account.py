@@ -91,6 +91,7 @@ def main():
 
     while True:
         
+        accounts_handler.update()
         address = accounts_handler.getAddress()
 
         params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
