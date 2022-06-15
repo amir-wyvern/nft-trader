@@ -146,6 +146,7 @@ def main():
                 data = {'pub': address ,'hero_id':hero['id'] }
                 r.publish('cancel' ,json.dumps(data)) 
 
+        accounts_handler.nextIndex()
         sleep(10)
 
 if __name__ == '__main__':
