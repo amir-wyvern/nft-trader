@@ -200,7 +200,7 @@ def main():
                     if tx[1] >= int(const_min_price * 10**18) and tx[1] <= buy_price and \
                         tx[0] > const_min_hero_id and not r.get('history:buyhero:{0}'.format(tx[0])): #NOTE : i need temp var for save buy already hero to dont buy again old hero!
                         
-                        log.info( '(^-^) Found Hero [id : {0}} ,price : {1}]'.format(tx[0] ,tx[1]) )
+                        log.info( '(^-^) Found Hero [id : {0} ,price : {1}]'.format(tx[0] ,tx[1]) )
                         buy_hero(tx[0], tx[1])
 
         except KeyboardInterrupt :
