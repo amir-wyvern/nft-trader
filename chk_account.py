@@ -97,10 +97,14 @@ def main():
         params = {"limit":100,"params":[],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
 
         params['params']  = [{"field":"owner","operator":"=","value": address},{"field":"network","operator":"=","value":"hmy"} ]
+        try : 
+            ls_hero = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers ).json()
+            balance = jewel.functions.balanceOf(address).call() / 10**18
+        except :
+            log.error(f'!! RequestsError - [{e}]')
+            sleep(2)
+            continue
 
-        ls_hero = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers ).json()
-        balance = jewel.functions.balanceOf(address).call() / 10**18
-    
         while True:
             
             try :
