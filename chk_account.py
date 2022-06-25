@@ -102,7 +102,7 @@ def main():
         try : 
             ls_hero = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers ).json()
             balance = jewel.functions.balanceOf(address).call() / 10**18
-        except :
+        except Exception as e:
             log.error(f'!! RequestsError - [{e}]')
             sleep(2)
             continue
