@@ -64,17 +64,19 @@ def place_feature(attr ,feature , name):
     
     if name == 'mainclass':
         dict_attr = [ {"field": 'mainclass', 'operator': 'in', 'value': tmp} ]
+
     else:
         if type(tmp) != list:
             tmp = [int(item) for item in str(tmp)]
 
         dict_attr = [ {'field': name, 'operator': '>=', 'value': min(tmp) }]
 
-    return dict_attr
+    return dict_attr 
 
 def check_features(hero):
 
     ls = []
+
     ls.extend([{'field': 'network', 'operator': '=','value': 'hmy'}] )
     ls.extend([{'field': "saleprice", 'operator': ">=", 'value': 1000000000000000000}])
     ls.extend(place_feature(hero['generation'] ,gen ,'generation'))
@@ -132,23 +134,28 @@ def main():
         for hero in ls_hero:
             
             sell_params = {"limit":3,"params":[],"offset":0,"order":{"orderBy":"saleprice","orderDir":"asc"}}
-            sell_params['params'] = check_features(hero)
-            resp = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=sell_params ,headers= headers )	     
             
-            info_update = resp.json()
+            try : 
+                sell_params['params'] = check_features(hero)
+                resp = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=sell_params ,headers= headers )	     
+                
+                info_update = resp.json()
 
-            price_for_sale = int(info_update[0]['saleprice']) // 10**18 - 0.1
-            price_for_sale = int(price_for_sale * 10**18)
-             
-            if hero['saleprice'] is None:
-                log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
-                data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
-                r.publish('sell' ,json.dumps(data) )
-        
-            elif abs(int(hero['saleprice']) - price_for_sale) >= 2*10**18 :
-                log.debug('send hero for cancel sale [{0}] ({1}->{2})'.format(hero['id'] ,int(hero['saleprice'])/10**18 ,price_for_sale/10**18 ))
-                data = {'pub': address ,'hero_id':hero['id'] }
-                r.publish('cancel' ,json.dumps(data)) 
+                price_for_sale = int(info_update[0]['saleprice']) // 10**18 - 0.1
+                price_for_sale = int(price_for_sale * 10**18)
+                
+                if hero['saleprice'] is None:
+                    log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
+                    data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
+                    r.publish('sell' ,json.dumps(data) )
+            
+                elif abs(int(hero['saleprice']) - price_for_sale) >= 2*10**18 :
+                    log.debug('send hero for cancel sale [{0}] ({1}->{2})'.format(hero['id'] ,int(hero['saleprice'])/10**18 ,price_for_sale/10**18 ))
+                    data = {'pub': address ,'hero_id':hero['id'] }
+                    r.publish('cancel' ,json.dumps(data)) 
+            
+            except Exception as e:
+                log.error(f'!! error - [{e}]')
 
         accounts_handler.nextIndex()
         sleep(10)
