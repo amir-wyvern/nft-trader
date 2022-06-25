@@ -21,13 +21,14 @@ utl = Utils()
 r = redis.Redis(host=utl.configs['redis_host'] ,port=utl.configs['redis_port'] ,decode_responses=True)
 
 w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
+
 hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
 
 def buy_hero(hero_id ,price):
 
     address = accounts_handler.getAddress()
     pri = accounts_handler.getPri() 
-
+    
     failed_count_of_req = 0
 
     while True:
@@ -162,7 +163,8 @@ def main():
 
         while True:
             try:
-                first_10_tx = account.get_transaction_history(utl.contracts['hero']['address'] ,order='DESC', page=0, page_size=10, include_full_tx=True, endpoint= utl.get_network() )
+                # tx_pendings = account.get_transaction_history(utl.contracts['hero']['address'] ,order='DESC', page=0, page_size=10, include_full_tx=True, endpoint= utl.get_network() )
+                tx_pendings = transaction.get_pending_transactions(utl.get_network() )
                 break
 
             except RequestsError as e:
@@ -192,7 +194,7 @@ def main():
     
             # NOTE : check fake address
 
-            for i in first_10_tx :
+            for i in tx_pendings :
                     
                 if tx := utl.decode_response(i):
                     
@@ -209,9 +211,9 @@ def main():
 
         except Exception as e:
             log.error(f'!!! error [{e}]')
-        
 
-if __name__ == '__main__':
+
+if __name__ == '__main__' :
 
     log.debug('# ======= > run buy.py < ======= #')
 
