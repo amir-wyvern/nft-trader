@@ -24,7 +24,7 @@ w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 
 hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
 
-def buy_hero(hero_id ,price):
+def buy_hero(hero_id ,price ,gas):
 
     address = accounts_handler.getAddress()
     pri = accounts_handler.getPri() 
@@ -32,6 +32,7 @@ def buy_hero(hero_id ,price):
     failed_count_of_req = 0
 
     while True:
+
         try :
             nonce = account.get_account_nonce(address ,block_num='latest' ,endpoint= utl.get_network() )
             break
@@ -80,7 +81,7 @@ def buy_hero(hero_id ,price):
                 'chainId': 1,
                 'from': address,
                 'gas': utl.configs['gas_limit'],
-                'gasPrice': utl.configs['gas_price'],
+                'gasPrice': gas,
                 'data': build_tx['data'],
                 'nonce': nonce,
                 'shardID': 0,
@@ -201,9 +202,9 @@ def main():
                     # tx = (hero_id, price, ... )
                     if tx[1] >= int(const_min_price * 10**18) and tx[1] <= buy_price and \
                         tx[0] > const_min_hero_id and not r.get('history:buyhero:{0}'.format(tx[0])): #NOTE : i need temp var for save buy already hero to dont buy again old hero!
-                        
+                        gas = i['gasPrice']
                         log.info( '(^-^) Found Hero [id : {0} ,price : {1}]'.format(tx[0] ,tx[1]) )
-                        buy_hero(tx[0], tx[1])
+                        buy_hero(tx[0], tx[1] ,gas)
 
         except KeyboardInterrupt :
             log.error('Exit!')
