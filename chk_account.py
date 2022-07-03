@@ -19,8 +19,6 @@ w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
 
 utl = Utils()
 
-hero_contract = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['hero']['address']), abi=utl.contracts['hero']['abi'])
-profile = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['profile']['address']), abi=utl.contracts['profile']['abi'])
 jewel = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['jewel']['address']), abi=utl.contracts['jewel']['abi'])
 
 r = redis.Redis(host=utl.configs['redis_host'], port=utl.configs['redis_port'] ,decode_responses=True)
@@ -62,12 +60,13 @@ def place_feature(attr ,feature , name):
 
     dict_attr = {}
     
+    if type(tmp) != list:
+        tmp = [int(item) for item in str(tmp)]
+        
     if name == 'mainclass':
         dict_attr = [ {"field": 'mainclass', 'operator': 'in', 'value': tmp} ]
 
     else:
-        if type(tmp) != list:
-            tmp = [int(item) for item in str(tmp)]
 
         dict_attr = [ {'field': name, 'operator': '>=', 'value': min(tmp) }]
 
@@ -102,8 +101,9 @@ def main():
         try : 
             ls_hero = requests.post('https://us-central1-defi-kingdoms-api.cloudfunctions.net/query_heroes' ,json=params ,headers= headers ).json()
             balance = jewel.functions.balanceOf(address).call() / 10**18
+        
         except Exception as e:
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] RequestsError - [{e}]')
             sleep(2)
             continue
 
@@ -117,17 +117,17 @@ def main():
 
             except requests.exceptions.Timeout:
 
-                log.error(f'!! RequestsTimeoutError - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] RequestsTimeoutError - [{e}]')
                 sleep(2)
 
             except requests.exceptions.RequestException as e:
 
-                log.error(f'!! RequestException - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] RequestException - [{e}]')
                 sleep(2)
 
             except Exception as e:
 
-                log.error(f'!! error - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] error - [{e}]')
                 sleep(2)
 
 
@@ -145,17 +145,17 @@ def main():
                 price_for_sale = int(price_for_sale * 10**18)
                 
                 if hero['saleprice'] is None:
-                    log.debug('send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
+                    log.debug(' [{accounts_handler.getName()}] send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
                     data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
                     r.publish('sell' ,json.dumps(data) )
             
                 elif abs(int(hero['saleprice']) - price_for_sale) >= 2*10**18 :
-                    log.debug('send hero for cancel sale [{0}] ({1}->{2})'.format(hero['id'] ,int(hero['saleprice'])/10**18 ,price_for_sale/10**18 ))
+                    log.debug(' [{accounts_handler.getName()}] send hero for cancel sale [{0}] ({1}->{2})'.format(hero['id'] ,int(hero['saleprice'])/10**18 ,price_for_sale/10**18 ))
                     data = {'pub': address ,'hero_id':hero['id'] }
                     r.publish('cancel' ,json.dumps(data)) 
             
             except Exception as e:
-                log.error(f'!! error - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] error - [{e}]')
 
         accounts_handler.nextIndex()
         sleep(10)
