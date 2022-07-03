@@ -62,7 +62,7 @@ def place_feature(attr ,feature , name):
     
     if type(tmp) != list:
         tmp = [int(item) for item in str(tmp)]
-        
+
     if name == 'mainclass':
         dict_attr = [ {"field": 'mainclass', 'operator': 'in', 'value': tmp} ]
 
@@ -145,12 +145,12 @@ def main():
                 price_for_sale = int(price_for_sale * 10**18)
                 
                 if hero['saleprice'] is None:
-                    log.debug(' [{accounts_handler.getName()}] send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale))
+                    log.debug(' [{2}] send hero for sale [{0}-{1}]'.format(hero['id'] ,price_for_sale ,accounts_handler.getName()))
                     data = {'pub': address ,'hero_id':hero['id'] ,'price':price_for_sale}
                     r.publish('sell' ,json.dumps(data) )
             
                 elif abs(int(hero['saleprice']) - price_for_sale) >= 2*10**18 :
-                    log.debug(' [{accounts_handler.getName()}] send hero for cancel sale [{0}] ({1}->{2})'.format(hero['id'] ,int(hero['saleprice'])/10**18 ,price_for_sale/10**18 ))
+                    log.debug(' [{2}] send hero for cancel sale [{0}] ({1}->{2})'.format(hero['id'] ,int(hero['saleprice'])/10**18 ,price_for_sale/10**18 ,accounts_handler.getName() ))
                     data = {'pub': address ,'hero_id':hero['id'] }
                     r.publish('cancel' ,json.dumps(data)) 
             
