@@ -39,30 +39,30 @@ def buy_hero(hero_id ,price ,gas):
 
         except RequestsError as e:
             
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
+                log.info(f'!! [{accounts_handler.getName()}] 3 time failed tx [{hero_id}-{price}] ')
                 return False
 
             failed_count_of_req += 1
 
         except RequestsTimeoutError :
 
-            log.error(f'!! RequestsTimeoutError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
+                log.info(f'!! [{accounts_handler.getName()}] 3 time failed tx [{hero_id}-{price}] ')
                 return False
             
             failed_count_of_req += 1
         
         except Exception as e :
 
-            log.error(f'!! error - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] error - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
+                log.info(f'!! [{accounts_handler.getName()}] 3 time failed tx [{hero_id}-{price}] ')
                 return False
             
             failed_count_of_req += 1
@@ -96,7 +96,7 @@ def buy_hero(hero_id ,price ,gas):
         
         try :
             resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
-            log.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
+            log.info(f'- [{accounts_handler.getName()}] Tx Hash ({hero_id}-{price}) [{resp_hash}]')
 
             state = utl.wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
@@ -104,7 +104,7 @@ def buy_hero(hero_id ,price ,gas):
         
         except RequestsError as e:
 
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -114,7 +114,7 @@ def buy_hero(hero_id ,price ,gas):
 
         except RPCError as e:
 
-            log.error(f'!! RPCError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] RPCError - [{e}]')
             if failed_count_of_req > 3 :
                 status = False
                 break
@@ -123,7 +123,7 @@ def buy_hero(hero_id ,price ,gas):
 
         except RequestsTimeoutError as e:
             
-            log.error(f'!! RequestsTimeoutError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -133,7 +133,7 @@ def buy_hero(hero_id ,price ,gas):
         
         except Exception as e :
 
-            log.error(f'!! error - [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] error - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -143,13 +143,12 @@ def buy_hero(hero_id ,price ,gas):
 
 
     if status:
-        log.info(f'- successfully tx ({hero_id}-{price}) [{resp_hash}]')
-        accounts_handler.nextIndex()
+        log.info(f'- [{accounts_handler.getName()}] successfully tx ({hero_id}-{price}) [{resp_hash}]')
         r.set(f'history:buyhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
     else:
-        log.info(f'!! failed tx [{hero_id}, {price}] ')
+        log.info(f'!! [{accounts_handler.getName()}] failed tx [{hero_id}, {price}] ')
         return False
 
 
@@ -170,21 +169,21 @@ def main():
 
             except RequestsError as e:
 
-                log.error(f'!! RequestsError - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] RequestsError - [{e}]')
                 utl.get_network(_next= True)
 
             except RPCError as e:
 
-                log.error(f'!! RPCError - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] RPCError - [{e}]')
 
             except RequestsTimeoutError as e:
                 
-                log.error(f'!! RequestsTimeoutError - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] RequestsTimeoutError - [{e}]')
                 utl.get_network(_next= True)
             
             except Exception as e :
 
-                log.error(f'!! error - [{e}]')
+                log.error(f'!! [{accounts_handler.getName()}] error - [{e}]')
 
 
         buy_price = utl.get_buy_price()
@@ -203,15 +202,16 @@ def main():
                     if tx[1] >= int(const_min_price * 10**18) and tx[1] <= buy_price and \
                         tx[0] > const_min_hero_id and not r.get('history:buyhero:{0}'.format(tx[0])): #NOTE : i need temp var for save buy already hero to dont buy again old hero!
                         gas = i['gasPrice']
-                        log.info( '(^-^) Found Hero [id : {0} ,price : {1}]'.format(tx[0] ,tx[1]) )
+                        log.info( '(^-^) {2} Found Hero [id : {0} ,price : {1}]'.format(tx[0] ,tx[1] ,accounts_handler.getName()) )
                         buy_hero(tx[0], tx[1] ,gas)
+                        accounts_handler.chkBalance()
 
         except KeyboardInterrupt :
             log.error('Exit!')
             exit(0)
 
         except Exception as e:
-            log.error(f'!!! error [{e}]')
+            log.error(f'!! [{accounts_handler.getName()}] error [{e}]')
 
 
 if __name__ == '__main__' :
