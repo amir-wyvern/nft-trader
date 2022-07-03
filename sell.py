@@ -38,30 +38,30 @@ def sell_hero(address, hero_id ,price):
 
         except RequestsError as e:
             
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! failed tx [{hero_id}, {price}] ')
+                log.info(f'!! [{accounts_handler.getName(address)}] failed tx [{hero_id}, {price}] ')
                 return False
 
             failed_count_of_req += 1
 
         except RequestsTimeoutError :
 
-            log.error(f'!! RequestsTimeoutError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! failed tx [{hero_id}, {price}] ')
+                log.info(f'!! [{accounts_handler.getName(address)}] failed tx [{hero_id}, {price}] ')
                 return False
     
             failed_count_of_req += 1
 
         except Exception as e :
 
-            log.error(f'!! error - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] error - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! 3 time failed tx [{hero_id}-{price}] ')
+                log.info(f'!! [{accounts_handler.getName(address)}] 3 time failed tx [{hero_id}-{price}] ')
                 return False
             
             failed_count_of_req += 1
@@ -95,7 +95,7 @@ def sell_hero(address, hero_id ,price):
         
         try :
             resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
-            log.info(f'- Tx Hash ({hero_id}-{price}) [{resp_hash}]')
+            log.info(f'- [{accounts_handler.getName(address)}] Tx Hash ({hero_id}-{price}) [{resp_hash}]')
 
             state = utl.wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
@@ -103,7 +103,7 @@ def sell_hero(address, hero_id ,price):
         
         except RequestsError as e:
 
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -113,7 +113,7 @@ def sell_hero(address, hero_id ,price):
 
         except RPCError as e:
 
-            log.error(f'!! RPCError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RPCError - [{e}]')
             if failed_count_of_req > 3 :
                 status = False
                 break
@@ -122,7 +122,7 @@ def sell_hero(address, hero_id ,price):
 
         except RequestsTimeoutError as e:
             
-            log.error(f'!! RequestsTimeoutError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -132,7 +132,7 @@ def sell_hero(address, hero_id ,price):
         
         except Exception as e :
 
-            log.error(f'!! error - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] error - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -142,12 +142,12 @@ def sell_hero(address, hero_id ,price):
 
     if status:
 
-        log.info(f'- successfully tx [{hero_id}, {price}] - [{resp_hash}]')
+        log.info(f'- [{accounts_handler.getName(address)}] successfully tx [{hero_id}, {price}] - [{resp_hash}]')
         r.set(f'history:sellhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
     else:
-        log.info(f'!! failed tx [{hero_id}, {price}] ')
+        log.info(f'!! [{accounts_handler.getName(address)}] failed tx [{hero_id}, {price}] ')
         return False
 
 
@@ -166,7 +166,7 @@ def main():
 
                 if type(item['data']) == str:
                     data = json.loads(item['data'])
-                    log.debug('recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price']))
+                    log.debug('[{2}] recive a request for Sale [{0}-{1}]'.format(data['hero_id'] ,data['price'] ,accounts_handler.getName(data['pub']) ))
 
                     try :
                         if not r.get('history:sellhero:{0}'.format(data['hero_id'])) :
