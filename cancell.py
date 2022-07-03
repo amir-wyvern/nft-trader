@@ -38,20 +38,20 @@ def cancel_hero(address, hero_id):
 
         except RequestsError as e:
             
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! failed tx [{hero_id}] ')
+                log.info(f'!! [{accounts_handler.getName(address)}] failed tx [{hero_id}] ')
                 return False
 
             failed_count_of_req += 1
 
         except RequestsTimeoutError :
 
-            log.error(f'!! RequestsTimeoutError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
-                log.info(f'!! failed tx [{hero_id}] ')
+                log.info(f'!! [{accounts_handler.getName(address)}] failed tx [{hero_id}] ')
                 return False
             
             failed_count_of_req += 1
@@ -84,7 +84,7 @@ def cancel_hero(address, hero_id):
         
         try :
             resp_hash = transaction.send_raw_transaction(rawTx, utl.get_network() )
-            log.info(f'- Tx Hash ({hero_id}) [{resp_hash}]')
+            log.info(f'- [{accounts_handler.getName(address)}] Tx Hash ({hero_id}) [{resp_hash}]')
 
             state = utl.wait_for_transaction_receipt(resp_hash, timeout=20, endpoint=utl.get_network() )
             status = state['status']
@@ -92,7 +92,7 @@ def cancel_hero(address, hero_id):
         
         except RequestsError as e:
 
-            log.error(f'!! RequestsError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -102,7 +102,7 @@ def cancel_hero(address, hero_id):
 
         except RPCError as e:
 
-            log.error(f'!! RPCError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RPCError - [{e}]')
             if failed_count_of_req > 3 :
                 status = False
                 break
@@ -111,7 +111,7 @@ def cancel_hero(address, hero_id):
 
         except RequestsTimeoutError as e:
             
-            log.error(f'!! RequestsTimeoutError - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] RequestsTimeoutError - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -121,7 +121,7 @@ def cancel_hero(address, hero_id):
         
         except Exception as e :
 
-            log.error(f'!! error - [{e}]')
+            log.error(f'!! [{accounts_handler.getName(address)}] error - [{e}]')
             utl.get_network(_next= True)
             if failed_count_of_req > 3 :
                 status = False
@@ -131,12 +131,12 @@ def cancel_hero(address, hero_id):
 
 
     if status:
-        log.info(f'- successfully tx ({hero_id}) [{resp_hash}]')
+        log.info(f'- [{accounts_handler.getName(address)}] successfully tx ({hero_id}) [{resp_hash}]')
         r.set(f'history:cancelhero:{hero_id}' ,'confirm' ,ex=utl.configs['hero_time_cache'])
         return True
 
     else:
-        log.info(f'!! failed tx [{hero_id}] ')
+        log.info(f'!! [{accounts_handler.getName(address)}] failed tx [{hero_id}] ')
         return False
 
 
