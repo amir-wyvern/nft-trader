@@ -18,6 +18,9 @@ log = create_logger('account')
 
 utl = Utils()
 
+w3 = Web3(Web3.HTTPProvider('https://api.s0.t.hmny.io'))
+jewel = w3.eth.contract(address= Web3.toChecksumAddress(utl.contracts['jewel']['address']), abi=utl.contracts['jewel']['abi'])
+
 class Account :
     
     __instance = None
@@ -25,6 +28,7 @@ class Account :
     def __init__(self ,password):
         
         self.preHash = None
+        self.countOfChk = 0
         self.ls_accounts = []
         self.password = password
         self.index = 0
@@ -103,6 +107,20 @@ class Account :
     
         return decode_accounts
     
+    def getName(self ,pub=None):
+        
+        
+        if self.ls_accounts :
+            if pub is None:
+                return self.ls_accounts[self.index]['name']
+
+            for p in self.ls_accounts:
+                if p['pub'] == pub:
+                    return p['name']
+        else :
+            log.error("!! the list accounts is empty")
+            exit(0)
+
     def getAddress(self):
 
         if self.ls_accounts :
@@ -119,10 +137,32 @@ class Account :
         for p in self.ls_accounts:
             if p['pub'] == pub:
                 return p['pri']
+    
+    def getBalance(self):
         
+        try :
+            balance = jewel.functions.balanceOf(self.getAddress()).call() / 10**18
+            return balance
+
+        except Exception as e:
+        
+            log.error(f'!! error - {e}')
+            return False
+
     def nextIndex(self):
 
         self.update()
+
         self.index += 1
         self.index =  self.index % len(self.ls_accounts)
 
+    def chkBalance(self):
+        
+        if self.countOfChk >= 5 :
+            
+            if self.getBalance() < float(self.redis.get('hero:price:latest')):
+                self.nextIndex()
+
+            self.countOfChk = 0
+
+        self.countOfChk += 1
