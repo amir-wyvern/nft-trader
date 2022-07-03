@@ -158,7 +158,7 @@ def main():
                 if type(item['data']) == str:
 
                     data = json.loads(item['data'])
-                    log.debug('recive a request for Cancel [{0}]'.format(data['hero_id']))
+                    log.debug('[{2}] recive a request for Cancel [{0}]'.format(data['hero_id'] ,accounts_handler.getName(data['pub']) ))
 
                     try :
                         if not r.get('history:cancelhero:{0}'.format(data['hero_id'])) :
